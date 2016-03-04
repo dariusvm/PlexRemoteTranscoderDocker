@@ -1,0 +1,10 @@
+#!/bin/sh
+
+#Generate SSH key for autoconnect to Remote Transcoders
+if [ ! -f /config/.ssh/id_rsa ]; then
+    mkdir /config/.ssh
+    chmod 777 /config/.ssh
+    /sbin/setuser abc ssh-keygen -t rsa -f /config/.ssh/id_rsa -q -P ""
+fi
+
+/sbin/my_init

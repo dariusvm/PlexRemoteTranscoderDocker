@@ -1,0 +1,51 @@
+plex:
+  image: segator/plex:latest
+  labels:
+    io.rancher.scheduler.affinity:host_label: server=main
+  volumes:
+    - /mnt/media:/media:ro
+    
+    - /docker/plex:/config
+    - /tmp/transcode:/transcode    
+  environment:
+    VERSION: plexpass
+  ports:
+    - 32400:32400
+    - 32400:32400/udp
+    - 32469:32469
+    - 32469:32469/udp
+    # - 5353:5353/udp
+    - 1900:1900/udp
+
+transcoder_orchestrator:
+  image: segator/transcoder_orchestrator
+  labels:
+    io.rancher.scheduler.affinity:host_label: server=main
+  ports:
+    - 8800:8800/tcp
+    - 6006:6006/tcp
+  links:
+    - plex
+  volumes_from:
+    - plex
+  environment:
+    PLEX_PUBLIC_DOMAIN: 'my.public.domain'
+    DO_REGION: 'ams2'
+    DO_TOKEN: 'yourtoken'
+    SSH_PUB_KEY_PATH: /config/.ssh/id_rsa.pub
+    TRANSCODE_DOMAIN: 'my.public.domain'
+    TRANSCODE_PORT: '44103'
+    TRANSCODE_USER: 'youruser'
+    TRANSCODE_PASS: 'password'
+    ORCHESTRATOR_DOMAIN: 'my.public.domain'
+    ORCHESTRATOR_PORT: '8800'
+
+transcoder_fileserver:
+  image: dreamcat4/samba
+  labels:
+    io.rancher.scheduler.affinity:host_label: server=main
+  ports:
+    - 44103:445/tcp
+  command: -u "youruser;password" -s "transcode;/transcode;yes;no;no;youruser"
+  volumes_from:
+    - plex
