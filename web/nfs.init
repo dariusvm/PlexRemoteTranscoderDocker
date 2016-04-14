@@ -1,0 +1,9 @@
+#!/bin/bash
+
+. /etc/default/nfs-kernel-server
+. /etc/default/nfs-common
+
+service rpcbind restart
+service nfs-kernel-server restart
+
+exec inotifywait -m /exports
