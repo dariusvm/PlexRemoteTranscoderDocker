@@ -19,7 +19,7 @@ This docker consist of two dockers:
 -cpu atless 1K benchmark power to run plex server, I tested in diferent cloud prividers, DO,aruba,scaleway, work perfect.
 
 
-# #Thinks that you should know
+##Things that you should know
 -First deploy, the orchestrator docker need some minutes to generate a image to your DO account to avoid install nothing for your side.
  So keep calm and wait, you will now that it's done when in your DO account you see a image called PlexRemoteTranscoder
 -If you close the dockers and you have running DO VM, you will need to destroy it manually
