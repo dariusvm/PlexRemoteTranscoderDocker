@@ -3,5 +3,5 @@
 
 exec java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6006 \
    -jar /usr/bin/PlexCloudTranscoding.jar -digitalOceanToken $DO_TOKEN -digitalOceanRegion $DO_REGION \
-   -sshkey $SSH_PUB_KEY_PATH -webServerDomainName $PUBLIC_DOMAIN \
+   -sshkey $SSH_PUB_KEY_PATH -webServerDomainName $PUBLIC_DOMAIN  -VMTimeout $TRANSCODER_TIMEOUT \
    -webServerPort $ORCHESTRATOR_PUBLIC_PORT -mediaDirectory $MEDIA_DIRECTORY
