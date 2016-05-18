@@ -56,18 +56,20 @@ plexTranscoderOrchestrator:
   environment:  
     #Domain used by DigitalOcean to transfer transcoded video to your Plex Server
     PUBLIC_DOMAIN: my.public.domain.com
-	#Port used by DigitalOcean to transfer transcoded video to your Plex Server
+    #Port used by DigitalOcean to transfer transcoded video to your Plex Server
     PLEX_PUBLIC_PORT: '32400'
-	#this is where you want to deploy DigitalOcean machines(use the nearest from your plex server location)
+    #this is where you want to deploy DigitalOcean machines(use the nearest from your plex server location)
     DO_REGION: ams2 
-	#This is your digitalOcean admin token
+    #This is your digitalOcean admin token
     DO_TOKEN: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-	#This is the ssh key used by the DO VM to autoconnect using SSH (The Plex Docker autogenerate a cert)
+    #This is the ssh key used by the DO VM to autoconnect using SSH 
     SSH_PUB_KEY_PATH: /config/.ssh/id_rsa.pub
-	#same as PLEX_PUBLIC_PORT but this port is for DO machines notification of their current status
+    #same as PLEX_PUBLIC_PORT but this port is for DO machines notification of their current status
     ORCHESTRATOR_PUBLIC_PORT: '8800'
-	#Where is the movies tvshows
+    #Where is the movies tvshows
     MEDIA_DIRECTORY: /data
+    #In seconds, when the transcoder it's not used in this time, will be destroyed
+    TRANSCODER_TIMEOUT: 600
   image: segator/transcoder_orchestrator
   links:
   - PlexMainServer:plex
