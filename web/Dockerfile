@@ -15,14 +15,12 @@ RUN apt-get update -qq && apt-get install -y nfs-kernel-server runit inotify-too
 
 ADD nfs.init /etc/sv/nfs/run
 ADD nfs.stop /etc/sv/nfs/finish
+RUN chmod -R +x /etc/sv/nfs
 
 ##Java Install
-RUN apt-get update
-RUN apt-get install software-properties-common -y
-RUN add-apt-repository ppa:webupd8team/java -y
-RUN apt-get update
-RUN echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
-RUN apt-get install oracle-java7-installer -y
+RUN apt-get update && apt-get install software-properties-common -y && add-apt-repository ppa:webupd8team/java -y \
+    && apt-get update && echo debconf shared/accepted-oracle-license-v1-1 select true | debconf-set-selections \
+    && apt-get install oracle-java7-installer -y
 
 # Define commonly used JAVA_HOME variable
 #ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
@@ -30,6 +28,7 @@ RUN apt-get install oracle-java7-installer -y
 ##Web Orchestrator installation
 ADD web.init /etc/sv/web/run
 ADD web.stop /etc/sv/web/finish
+RUN chmod -R +x /etc/sv/web
 
 RUN apt-get update && apt-get -y install git maven \
     && cd /tmp/ && git clone https://github.com/segator/PlexRemoteTranscoderOrchestrator.git \
