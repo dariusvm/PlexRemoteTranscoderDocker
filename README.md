@@ -70,7 +70,7 @@ plexTranscoderOrchestrator:
     MEDIA_DIRECTORY: /data
     #In seconds, when the transcoder it's not used in this time, will be destroyed
     TRANSCODER_TIMEOUT: 600
-  image: segator/transcoder_orchestrator
+  image: segator/plextranscoderorchestrator
   links:
   - PlexMainServer:plex
   privileged: true
