@@ -33,12 +33,21 @@ PROPERTIES = {}
 with open('/config/transcoderProvider.properties') as f:
     for line in f:
         key, value = line.split('=')
-        PROPERTIES[key] = value.strip()        
+        PROPERTIES[key] = value.strip()
 
 
 log = logging.getLogger("prt")
 TRANSCODER_DIR  = "/usr/lib/plexmediaserver/Resources/"
-LD_LIBRARY_PATH = "/usr/lib/plexmediaserver/"
+ENV_VARS = {
+  'LD_LIBRARY_PATH':      "/usr/lib/plexmediaserver:$LD_LIBRARY_PATH",
+  'FFMPEG_EXTERNAL_LIBS': os.environ["FFMPEG_EXTERNAL_LIBS"],
+  'XDG_CACHE_HOME':       os.environ["XDG_CACHE_HOME"],
+  'XDG_DATA_HOME':        os.environ["XDG_DATA_HOME"],
+  'X_PLEX_TOKEN':         os.environ["X_PLEX_TOKEN"],
+  'PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR': os.environ['PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR'],
+  'PLEX_MEDIA_SERVER_MAX_STACK_SIZE': os.environ['PLEX_MEDIA_SERVER_MAX_STACK_SIZE'],
+  'PLEX_MEDIA_SERVER_MAX_PLUGIN_PROCS': os.environ['PLEX_MEDIA_SERVER_MAX_PLUGIN_PROCS']
+}
 LOG_PATH        = "/config/Library/Application Support/Plex Media Server/Logs/"
 NEW_TRANSCODER_NAME = "plex_transcoder"
 DEFAULT_CONFIG = {
@@ -96,8 +105,8 @@ def transcode_remote(args):
 
     session = get_transcode_session_details(args)
     log.info("Session details: %s" % str(session))
-    
-    REMOTE_ARGS = ("export LD_LIBRARY_PATH=%(ld_path)s;"
+
+    REMOTE_ARGS = ("%(env)s;"
                "cd %(working_dir)s;"
                "%(args)s")
 
@@ -118,10 +127,10 @@ def transcode_remote(args):
         time.sleep(2)
         timeout = (time.time()-firstRequest) > 300
         transcoderVM = getTranscoder(session)
-        
+
     if waitProcess is not None:
        time.sleep(10)
-       waitProcess.terminate() 
+       waitProcess.terminate()
        return 1
     if timeout == False:
        log.info("Transcoder %s - %s is ready to transcode" % (transcoderVM['machineID'],transcoderVM['name']))
@@ -134,13 +143,15 @@ def transcode_remote(args):
        if not mediaFilePath.startswith("http"):
           encodedMediaFilePath=base64.b64encode(mediaFilePath)
           args[posInput+1] = "http://"+PROPERTIES['PUBLIC_DOMAIN']+":8800/download/"+str(transcoderVM['machineID'])+"/"+encodedMediaFilePath+"?absolute=1"
+       env = ";".join("export %s=%s" % (k,v) for k,v in ENV_VARS.items())
+       print env
        command = REMOTE_ARGS % {
-           "ld_path":      "%s" % LD_LIBRARY_PATH,
+           "env":      env,
            "working_dir":  os.getcwd(),
            "args":         ' '.join([pipes.quote(a) for a in args])
        }
 
-       command = command.replace("127.0.0.1:32400", "%s:%s" % (PROPERTIES['PUBLIC_DOMAIN'], PROPERTIES['PLEX_PUBLIC_PORT']))
+       #command = command.replace("127.0.0.1:32400", "%s:%s" % (PROPERTIES['PUBLIC_DOMAIN'], PROPERTIES['PLEX_PUBLIC_PORT']))
        args = ["/usr/bin/ssh","-o","StrictHostKeyChecking=no", "%s@%s"  % ("abc", transcoderVM['ip']), "%s" % str(command)]
        log.info("Executing Remote Transcoding:%s" % str(args))
        proc = subprocess.Popen(args)
@@ -157,7 +168,7 @@ def getTranscoder(session):
 
 def get_transcode_session_details(args):
     session_details = {}
-    
+
     # Try to find the session ID in the args
     session_id = None
     for arg in args:
@@ -250,16 +261,22 @@ setup_logging()
 try:
     # The transcoder needs to have the propery LD_LIBRARY_PATH
     # set, otherwise it cannot run
-    os.environ["LD_LIBRARY_PATH"] = "%s:$LD_LIBRARY_PATH" % LD_LIBRARY_PATH
+    #os.environ["LD_LIBRARY_PATH"] = "%s:$LD_LIBRARY_PATH" % LD_LIBRARY_PATH
 
     args = [get_transcoder_path()] + sys.argv[1:]
+
+    #Enable debug
+    #replaceParams=[['quiet','debug']]
+    #quietpos = args.index('quiet')
+    #args[quietpos] = 'debug'
+
     transcodeType="local"
     returnCode = 0
     for param in args:
         if param == "libx264":
             transcodeType="remote"
             break
-
+    log.info(str(os.environ))
     if transcodeType=="remote":
         returnCode = transcode_remote(args)
     elif transcodeType=="local":
