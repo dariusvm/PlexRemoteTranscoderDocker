@@ -1,4 +1,4 @@
-FROM linuxserver/plex:latest
+FROM segator/docker-plex:latest
 MAINTAINER Isaac Aymerich <isaac.aymerich@gmail.com>
 
 COPY plex-init /sbin/plex-init
